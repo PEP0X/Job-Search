@@ -1,5 +1,6 @@
 import express from "express";
 import morgan from "morgan";
+import errorHandler from "./middleware/errorHandler.js";
 
 const app = express();
 
@@ -13,5 +14,7 @@ app.get("/api", (req, res) => {
     message: "Welcome to Job-Search API 🚀",
   });
 });
+
+app.use(errorHandler);
 
 export default app;
