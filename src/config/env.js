@@ -14,6 +14,9 @@ const envSchema = Joi.object({
   MONGO_URI: Joi.string().required().description("MongoDB URI"),
   JWT_SECRET: Joi.string().required().description("JWT Secret Key"),
   JWT_EXPIRATION: Joi.string().required().description("JWT Expiration Time"),
+  ENCRYPTION_KEY: Joi.string().required().description("Encryption Key"),
+  IV_LENGTH: Joi.number().required().description("IV Length"),
+  ALGORITHM: Joi.string().required().description("Algorithm"),
 }).unknown();
 
 const { error, value: envVars } = envSchema.validate(process.env);
@@ -31,5 +34,10 @@ export const config = {
   jwt: {
     secret: envVars.JWT_SECRET,
     expiration: envVars.JWT_EXPIRATION,
+  },
+  encryption: {
+    key: envVars.ENCRYPTION_KEY,
+    ivLength: envVars.IV_LENGTH,
+    algorithm: envVars.ALGORITHM,
   },
 };
