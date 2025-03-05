@@ -1,7 +1,18 @@
 import User from "../model/User.model.js";
-import { generateOTP, generateAccessToken, generateRefreshToken, hashOTP, compareOTP } from "../utils/auth.js";
+import {
+  generateOTP,
+  generateAccessToken,
+  generateRefreshToken,
+  hashOTP,
+  compareOTP,
+} from "../utils/auth.js";
 import { ApiError } from "../utils/errors/customErrors.js";
-import { sendVerificationEmail, sendPasswordResetEmail, sendWelcomeEmail } from "../utils/email/emailService.js";
+import { config } from "../config/env.js";
+import {
+  sendVerificationEmail,
+  sendPasswordResetEmail,
+  sendWelcomeEmail,
+} from "../utils/email/emailService.js";
 import {
   signupSchema,
   signinSchema,
@@ -9,6 +20,9 @@ import {
   resetPasswordSchema,
   refreshTokenSchema,
 } from "../utils/validation/Auth.validation.js";
+
+import passport from "passport";
+import jwt from "jsonwebtoken";
 
 // Signup controller
 export const signup = async (req, res, next) => {
@@ -31,7 +45,7 @@ export const signup = async (req, res, next) => {
     const otp = generateOTP();
     const hashedOTP = await hashOTP(otp);
     const expiresIn = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-    
+
     // Add hashed OTP to user document
     user.OTP.push({
       code: hashedOTP,
@@ -55,12 +69,12 @@ export const signup = async (req, res, next) => {
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        isConfirmed: user.isConfirmed
+        isConfirmed: user.isConfirmed,
       },
       tokens: {
         accessToken,
-        refreshToken
-      }
+        refreshToken,
+      },
     });
   } catch (error) {
     next(new ApiError(500, error.message || "Error creating user"));
@@ -81,19 +95,19 @@ export const verifyOTP = async (req, res, next) => {
     if (!user) return res.status(404).json({ error: "User not found" });
 
     // Find the OTP records of the specified type
-    const otpRecords = user.OTP.filter(record => record.type === type);
-    
-    if (otpRecords.length === 0) 
+    const otpRecords = user.OTP.filter((record) => record.type === type);
+
+    if (otpRecords.length === 0)
       return res.status(400).json({ error: "No OTP found for this action" });
-    
+
     // Check if any OTP matches
     let validOTP = false;
     let validOTPRecord = null;
-    
+
     for (const record of otpRecords) {
       // Check if OTP is expired
       if (new Date() > new Date(record.expiresIn)) continue;
-      
+
       // Compare the provided OTP with the hashed one
       const isMatch = await compareOTP(otp, record.code);
       if (isMatch) {
@@ -102,27 +116,29 @@ export const verifyOTP = async (req, res, next) => {
         break;
       }
     }
-    
-    if (!validOTP) return res.status(400).json({ error: "Invalid or expired OTP" });
+
+    if (!validOTP)
+      return res.status(400).json({ error: "Invalid or expired OTP" });
 
     // If OTP is for email confirmation, mark user as confirmed
     if (type === "confirmEmail") {
       user.isConfirmed = true;
-      
+
       // Send welcome email
       await sendWelcomeEmail(user);
     }
 
     // Remove all OTPs of this type
-    user.OTP = user.OTP.filter(record => record.type !== type);
+    user.OTP = user.OTP.filter((record) => record.type !== type);
     await user.save();
 
     res.status(200).json({
       success: true,
-      message: type === "confirmEmail" 
-        ? "Email verified successfully" 
-        : "OTP verified successfully",
-      isConfirmed: user.isConfirmed
+      message:
+        type === "confirmEmail"
+          ? "Email verified successfully"
+          : "OTP verified successfully",
+      isConfirmed: user.isConfirmed,
     });
   } catch (error) {
     next(new ApiError(500, error.message || "Error verifying OTP"));
@@ -160,7 +176,9 @@ export const forgotPassword = async (req, res, next) => {
       message: "Password reset OTP sent to your email",
     });
   } catch (error) {
-    next(new ApiError(500, error.message || "Error sending password reset OTP"));
+    next(
+      new ApiError(500, error.message || "Error sending password reset OTP")
+    );
   }
 };
 
@@ -178,18 +196,20 @@ export const resetPassword = async (req, res, next) => {
     if (!user) return res.status(404).json({ error: "User not found" });
 
     // Find the OTP records of the specified type
-    const otpRecords = user.OTP.filter(record => record.type === "forgetPassword");
-    
-    if (otpRecords.length === 0) 
+    const otpRecords = user.OTP.filter(
+      (record) => record.type === "forgetPassword"
+    );
+
+    if (otpRecords.length === 0)
       return res.status(400).json({ error: "No password reset OTP found" });
-    
+
     // Check if any OTP matches
     let validOTP = false;
-    
+
     for (const record of otpRecords) {
       // Check if OTP is expired
       if (new Date() > new Date(record.expiresIn)) continue;
-      
+
       // Compare the provided OTP with the hashed one
       const isMatch = await compareOTP(otp, record.code);
       if (isMatch) {
@@ -197,14 +217,15 @@ export const resetPassword = async (req, res, next) => {
         break;
       }
     }
-    
-    if (!validOTP) return res.status(400).json({ error: "Invalid or expired OTP" });
+
+    if (!validOTP)
+      return res.status(400).json({ error: "Invalid or expired OTP" });
 
     // Update password
     user.password = newPassword;
-    
+
     // Remove all OTPs of this type
-    user.OTP = user.OTP.filter(record => record.type !== "forgetPassword");
+    user.OTP = user.OTP.filter((record) => record.type !== "forgetPassword");
 
     // Update credential change time
     user.changeCredentialTime = Date.now();
@@ -234,11 +255,13 @@ export const login = async (req, res, next) => {
     if (!user) return res.status(404).json({ error: "User not found" });
 
     // Check if user is deleted
-    if (user.deletedAt) return res.status(403).json({ error: "Account has been deleted" });
+    if (user.deletedAt)
+      return res.status(403).json({ error: "Account has been deleted" });
 
     // Check if password is correct
     const isPasswordValid = await user.comparePassword(password);
-    if (!isPasswordValid) return res.status(401).json({ error: "Invalid credentials" });
+    if (!isPasswordValid)
+      return res.status(401).json({ error: "Invalid credentials" });
 
     // Generate tokens
     const accessToken = generateAccessToken(user);
@@ -253,12 +276,12 @@ export const login = async (req, res, next) => {
         lastName: user.lastName,
         email: user.email,
         isConfirmed: user.isConfirmed,
-        role: user.role
+        role: user.role,
       },
       tokens: {
         accessToken,
-        refreshToken
-      }
+        refreshToken,
+      },
     });
   } catch (error) {
     next(new ApiError(500, error.message || "Error logging in"));
@@ -276,13 +299,14 @@ export const refreshToken = async (req, res, next) => {
 
     // Verify refresh token
     const decoded = jwt.verify(token, process.env.REFRESH_SECRET);
-    
+
     // Find user by id
     const user = await User.findById(decoded.id);
     if (!user) return res.status(404).json({ error: "User not found" });
 
     // Check if user is deleted
-    if (user.deletedAt) return res.status(403).json({ error: "Account has been deleted" });
+    if (user.deletedAt)
+      return res.status(403).json({ error: "Account has been deleted" });
 
     // Generate new tokens
     const accessToken = generateAccessToken(user);
@@ -292,16 +316,51 @@ export const refreshToken = async (req, res, next) => {
       success: true,
       tokens: {
         accessToken,
-        refreshToken
-      }
+        refreshToken,
+      },
     });
   } catch (error) {
-    if (error.name === 'JsonWebTokenError') {
+    if (error.name === "JsonWebTokenError") {
       return res.status(401).json({ error: "Invalid refresh token" });
     }
-    if (error.name === 'TokenExpiredError') {
+    if (error.name === "TokenExpiredError") {
       return res.status(401).json({ error: "Refresh token expired" });
     }
     next(new ApiError(500, error.message || "Error refreshing token"));
   }
+};
+
+// Google Authentication
+export const googleAuth = passport.authenticate("google", {
+  scope: ["profile", "email"],
+});
+
+// Google callback handler
+export const googleCallback = (req, res, next) => {
+  passport.authenticate("google", { session: false }, async (err, user) => {
+    try {
+      if (err) {
+        return next(new ApiError(500, err.message || "Authentication error"));
+      }
+
+      if (!user) {
+        return res.redirect(
+          `${config.siteUrl}/auth/login?error=Authentication failed`
+        );
+      }
+
+      // Generate tokens
+      const accessToken = generateAccessToken(user);
+      const refreshToken = generateRefreshToken(user);
+
+      // Redirect to frontend with tokens
+      return res.redirect(
+        `${config.siteUrl}/auth/social-callback?accessToken=${accessToken}&refreshToken=${refreshToken}`
+      );
+    } catch (error) {
+      return next(
+        new ApiError(500, error.message || "Error in Google authentication")
+      );
+    }
+  })(req, res, next);
 };
