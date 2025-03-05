@@ -17,6 +17,9 @@ const envSchema = Joi.object({
   ENCRYPTION_KEY: Joi.string().required().description("Encryption Key"),
   IV_LENGTH: Joi.number().required().description("IV Length"),
   ALGORITHM: Joi.string().required().description("Algorithm"),
+  EMAIL_USER: Joi.string().required().description("Email username"),
+  EMAIL_PASS: Joi.string().required().description("Email password"),
+  SITE_URL: Joi.string().default('http://localhost:3000').description("Frontend site URL"),
 }).unknown();
 
 const { error, value: envVars } = envSchema.validate(process.env);
@@ -40,4 +43,9 @@ export const config = {
     ivLength: envVars.IV_LENGTH,
     algorithm: envVars.ALGORITHM,
   },
+  email: {
+    user: envVars.EMAIL_USER,
+    password: envVars.EMAIL_PASS,
+  },
+  siteUrl: envVars.SITE_URL,
 };

@@ -1,6 +1,7 @@
-import { Schema } from "mongoose";
-import bcrypt from "bcrypt";
-import { config } from "../config/env";
+import { Schema, model } from "mongoose";
+import bcrypt from "bcryptjs";
+import { config } from "../config/env.js";
+import crypto from "crypto";
 
 const userProviders = ["system", "google"];
 const userGender = ["Male", "Female"];
@@ -45,7 +46,7 @@ const UserSchema = new Schema(
       default: "system",
     },
     gender: {
-      type: string,
+      type: String,
       required: [true, "Gender is Required"],
       enum: userGender,
     },
@@ -107,7 +108,7 @@ const UserSchema = new Schema(
 );
 
 //! Virtual Field for username (User Collection Task)
-UserSchema.virtual("username").get(() => {
+UserSchema.virtual("username").get(function () {
   return `${this.firstName} ${this.lastName}`;
 });
 
@@ -159,8 +160,8 @@ UserSchema.methods.decryptMobileNumber = function () {
     const iv = Buffer.from(textParts.shift(), "hex");
     const encryptedText = Buffer.from(textParts.join(":"), "hex");
     const decipher = crypto.createDecipheriv(
-      ALGORITHM,
-      Buffer.from(ENCRYPTION_KEY),
+      config.encryption.algorithm,
+      Buffer.from(config.encryption.key),
       iv
     );
     let decrypted = decipher.update(encryptedText);
