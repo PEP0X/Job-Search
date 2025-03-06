@@ -14,16 +14,32 @@ const envSchema = Joi.object({
   MONGO_URI: Joi.string().required().description("MongoDB URI"),
   JWT_SECRET: Joi.string().required().description("JWT Secret Key"),
   JWT_EXPIRATION: Joi.string().required().description("JWT Expiration Time"),
-  REFRESH_SECRET: Joi.string().required().description("Refresh Token Secret Key"),
+  REFRESH_SECRET: Joi.string()
+    .required()
+    .description("Refresh Token Secret Key"),
   ENCRYPTION_KEY: Joi.string().required().description("Encryption Key"),
   IV_LENGTH: Joi.number().required().description("IV Length"),
+  ENCRYPTION_IV: Joi.string().required().description("Encryption IV"),
   ALGORITHM: Joi.string().required().description("Algorithm"),
   EMAIL_USER: Joi.string().required().description("Email username"),
   EMAIL_PASS: Joi.string().required().description("Email password"),
-  SITE_URL: Joi.string().default('http://localhost:3000').description("Frontend site URL"),
-  API_URL: Joi.string().default('http://localhost:3000').description("API URL"),
-  GOOGLE_CLIENT_ID: Joi.string().required().description("Google OAuth Client ID"),
-  GOOGLE_CLIENT_SECRET: Joi.string().required().description("Google OAuth Client Secret"),
+  SITE_URL: Joi.string()
+    .default("http://localhost:3000")
+    .description("Frontend site URL"),
+  API_URL: Joi.string().default("http://localhost:3000").description("API URL"),
+  GOOGLE_CLIENT_ID: Joi.string()
+    .required()
+    .description("Google OAuth Client ID"),
+  GOOGLE_CLIENT_SECRET: Joi.string()
+    .required()
+    .description("Google OAuth Client Secret"),
+  CLOUDINARY_CLOUD_NAME: Joi.string()
+    .required()
+    .description("Cloudinary Cloud Name"),
+  CLOUDINARY_API_KEY: Joi.string().required().description("Cloudinary API Key"),
+  CLOUDINARY_API_SECRET: Joi.string()
+    .required()
+    .description("Cloudinary API Secret"),
 }).unknown();
 
 const { error, value: envVars } = envSchema.validate(process.env);
@@ -46,6 +62,7 @@ export const config = {
     key: envVars.ENCRYPTION_KEY,
     ivLength: envVars.IV_LENGTH,
     algorithm: envVars.ALGORITHM,
+    ENCRYPTION_IV: envVars.ENCRYPTION_IV,
   },
   email: {
     user: envVars.EMAIL_USER,
@@ -58,5 +75,10 @@ export const config = {
       clientId: envVars.GOOGLE_CLIENT_ID,
       clientSecret: envVars.GOOGLE_CLIENT_SECRET,
     },
+  },
+  cloudinary: {
+    cloudName: envVars.CLOUDINARY_CLOUD_NAME,
+    apiKey: envVars.CLOUDINARY_API_KEY,
+    apiSecret: envVars.CLOUDINARY_API_SECRET,
   },
 };

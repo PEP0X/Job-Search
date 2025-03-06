@@ -47,6 +47,8 @@ export const handleTokenExpiration = async (req, res, next) => {
 
     // Add user to request object
     req.user = user;
+    // Add string version of _id as id for consistency
+    req.user.id = user._id.toString();
     next();
   } catch (error) {
     if (error.name === "TokenExpiredError") {

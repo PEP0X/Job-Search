@@ -2,6 +2,7 @@ import express from "express";
 import morgan from "morgan";
 import errorHandler from "./middleware/errorHandler.js";
 import authRoutes from "./routes/auth.routes.js";
+import userRoutes from "./routes/user.routes.js";
 import passport from "./config/passport.js";
 import { tokenErrorHandler } from "./middleware/refreshToken.middleware.js";
 const app = express();
@@ -21,6 +22,7 @@ app.get("/api", (req, res) => {
 
 // Main Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
 
 // Temporary route to handle social login callback
 app.get("/auth/social-callback", (req, res) => {
@@ -34,7 +36,6 @@ app.get("/auth/social-callback", (req, res) => {
     <p>You can now use these tokens to make authenticated API requests.</p>
   `);
 });
-
 
 app.use(tokenErrorHandler);
 app.use(errorHandler);
