@@ -25,11 +25,11 @@ router.get("/:id/profile", getOtherUserProfile);
 router.put("/update-password", updatePassword);
 
 // Profile picture routes
-router.post("/profile-pic", upload.single("profilePic"), uploadProfilePic);
+router.post("/profile-pic", upload.image.single("profilePic"), uploadProfilePic);
 router.delete("/profile-pic", deleteProfilePic);
 
 // Cover picture routes
-router.post("/cover-pic", upload.single("coverPic"), uploadCoverPic);
+router.post("/cover-pic", upload.image.single("coverPic"), uploadCoverPic);
 router.delete("/cover-pic", deleteCoverPic);
 
 // Account management
