@@ -4,6 +4,7 @@ import errorHandler from "./middleware/errorHandler.js";
 import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import companyRoutes from "./routes/company.routes.js";
+import jobRoutes from "./routes/job.routes.js";
 import passport from "./config/passport.js";
 import { tokenErrorHandler } from "./middleware/refreshToken.middleware.js";
 const app = express();
@@ -25,6 +26,7 @@ app.get("/api", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/companies", companyRoutes);
+app.use("/api/jobs", jobRoutes);
 
 // Temporary route to handle social login callback
 app.get("/auth/social-callback", (req, res) => {

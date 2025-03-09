@@ -38,4 +38,4 @@ applicationSchema.index({ jobId: 1 });
 applicationSchema.index({ userId: 1 });
 applicationSchema.index({ status: 1 });
 
-module.exports = model("Application", applicationSchema);
+export default model("Application", applicationSchema);

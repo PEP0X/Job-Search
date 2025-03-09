@@ -64,12 +64,13 @@ export const sendWelcomeEmail = async (user) => {
     html: templates.welcomeTemplate(firstName),
   });
 };
+// Add these functions to your existing emailService.js file
 
 /**
- * Send job application confirmation
- * @param {Object} user - User object with name and email
- * @param {Object} job - Job details
- * @param {Object} company - Company details
+ * Send application confirmation email to user
+ * @param {Object} user - User who applied
+ * @param {Object} job - Job applied for
+ * @param {Object} company - Company that posted the job
  * @returns {Promise}
  */
 export const sendApplicationConfirmation = async (user, job, company) => {
@@ -77,8 +78,8 @@ export const sendApplicationConfirmation = async (user, job, company) => {
   
   return sendEmail({
     to: email,
-    subject: 'Application Submitted Successfully',
-    html: templates.applicationConfirmationTemplate(firstName, job.jobTitle, company.companyName),
+    subject: `Application Submitted: ${job.jobTitle} at ${company.companyName}`,
+    html: templates.applicationConfirmationTemplate(firstName, job, company),
   });
 };
 
