@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { Schema, model } from "mongoose";
 
 const JobLocations = ["onsite", "remotely", "hybrid"];
@@ -111,6 +112,38 @@ JobSchema.statics.findActive = function () {
     closed: false,
   });
 };
+
+// Pre-hook for findOneAndDelete and deleteOne operations
+JobSchema.pre(
+  ["findOneAndDelete", "deleteOne"],
+  { document: false, query: true },
+  async function () {
+    const job = await this.model.findOne(this.getFilter());
+    if (!job) return;
+
+    // Delete all applications for this job
+    await mongoose.model("Application").deleteMany({ jobId: job._id });
+  }
+);
+
+// Pre-hook for document middleware (when using save() for soft delete)
+JobSchema.pre("save", async function (next) {
+  // If this is a soft delete operation
+  if (this.isModified("deletedAt") && this.deletedAt) {
+    try {
+      // Update all pending applications to rejected
+      await mongoose
+        .model("Application")
+        .updateMany(
+          { jobId: this._id, status: { $nin: ["accepted", "rejected"] } },
+          { $set: { status: "rejected" } }
+        );
+    } catch (error) {
+      console.error("Error in Job soft delete hook:", error);
+    }
+  }
+  next();
+});
 
 const Job = model("Job", JobSchema);
 

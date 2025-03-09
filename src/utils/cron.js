@@ -25,12 +25,17 @@ const cleanupDeletedUsers = async () => {
   try {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     
-    // Hard delete users that were soft-deleted more than 30 days ago
-    const result = await User.deleteMany({
+    // Find users to delete first
+    const usersToDelete = await User.find({
       deletedAt: { $lt: thirtyDaysAgo, $ne: null }
     });
     
-    console.log(`Permanently deleted ${result.deletedCount} users`);
+    // Process each user individually to trigger hooks
+    for (const user of usersToDelete) {
+      await User.deleteOne({ _id: user._id });
+    }
+    
+    console.log(`Permanently deleted ${usersToDelete.length} users`);
   } catch (error) {
     console.error("Error cleaning up deleted users:", error);
   }

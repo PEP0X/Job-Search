@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { Schema, model } from "mongoose";
 import Joi from "joi";
 
@@ -111,6 +112,54 @@ CompanySchema.statics.findActive = function () {
     approvedByAdmin: true,
   });
 };
+
+// Pre-hook for findOneAndDelete and deleteOne operations
+CompanySchema.pre(['findOneAndDelete', 'deleteOne'], { document: false, query: true }, async function() {
+  const company = await this.model.findOne(this.getFilter());
+  if (!company) return;
+  
+  const companyId = company._id;
+  
+  // Find all jobs for this company
+  const jobs = await mongoose.model('Job').find({ companyId });
+  
+  // Delete all applications for these jobs
+  for (const job of jobs) {
+    await mongoose.model('Application').deleteMany({ jobId: job._id });
+  }
+  
+  // Delete all jobs for this company
+  await mongoose.model('Job').deleteMany({ companyId });
+});
+
+// Pre-hook for document middleware (when using save() for soft delete)
+CompanySchema.pre('save', async function(next) {
+  // If this is a soft delete operation
+  if (this.isModified('deletedAt') && this.deletedAt) {
+    try {
+      // Soft delete all jobs for this company
+      await mongoose.model('Job').updateMany(
+        { companyId: this._id },
+        { $set: { deletedAt: new Date() } }
+      );
+      
+      // Get all job IDs for this company
+      const jobs = await mongoose.model('Job').find({ companyId: this._id });
+      const jobIds = jobs.map(job => job._id);
+      
+      // Update all applications for these jobs to rejected status
+      if (jobIds.length > 0) {
+        await mongoose.model('Application').updateMany(
+          { jobId: { $in: jobIds }, status: { $nin: ['accepted', 'rejected'] } },
+          { $set: { status: 'rejected' } }
+        );
+      }
+    } catch (error) {
+      console.error('Error in Company soft delete hook:', error);
+    }
+  }
+  next();
+});
 
 const Company = model("Company", CompanySchema);
 

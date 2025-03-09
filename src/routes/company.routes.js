@@ -9,6 +9,7 @@ import {
   uploadCoverPic,
   deleteLogo,
   deleteCoverPic,
+  exportCompanyApplications,
 } from "../controller/company.controller.js";
 import { verifyToken } from "../middleware/auth.middleware.js";
 import upload from "../middleware/upload.js";
@@ -30,5 +31,8 @@ router.post("/:id/logo", upload.image.single("logo"), uploadLogo);
 router.post("/:id/cover", upload.image.single("coverPic"), uploadCoverPic);
 router.delete("/:id/logo", deleteLogo);
 router.delete("/:id/cover", deleteCoverPic);
+
+// Bonus : collects the applications for a specific company on a specific day and creates an Excel sheet with this data
+router.get("/:companyId/applications/export", exportCompanyApplications);
 
 export default router;

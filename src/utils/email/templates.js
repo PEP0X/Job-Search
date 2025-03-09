@@ -200,50 +200,40 @@ export const applicationConfirmationTemplate = (firstName, job, company) => base
  * @param {String} status - New application status
  * @returns {String} HTML email template
  */
-export const applicationStatusUpdateTemplate = (firstName, job, company, status) => {
-  let statusMessage = '';
-  
-  switch(status) {
-    case 'accepted':
-      statusMessage = 'Congratulations! Your application has been accepted. The company will contact you soon to discuss the next steps.';
-      break;
-    case 'viewed':
-      statusMessage = 'Your application has been viewed by the hiring team. They are currently reviewing your qualifications.';
-      break;
-    case 'in consideration':
-      statusMessage = 'Good news! Your application is being considered for the position. The hiring team is evaluating all candidates.';
-      break;
-    case 'rejected':
-      statusMessage = 'Thank you for your interest. After careful consideration, the company has decided to pursue other candidates for this position.';
-      break;
-    default:
-      statusMessage = 'Your application status has been updated.';
-  }
-  
-  return baseTemplate(`
-    <div class="content">
-      <h2>Application Status Update</h2>
-      <p>Hello ${firstName},</p>
-      <p>There has been an update to your application for the position of <strong>${job.jobTitle}</strong> at <strong>${company.companyName}</strong>.</p>
-      
-      <div class="status">
-        <h3>Status: ${status.charAt(0).toUpperCase() + status.slice(1)}</h3>
-        <p>${statusMessage}</p>
-      </div>
-      
-      <div class="details">
-        <h3>Job Details:</h3>
-        <ul>
-          <li><strong>Position:</strong> ${job.jobTitle}</li>
-          <li><strong>Company:</strong> ${company.companyName}</li>
-        </ul>
-      </div>
-      
-      <p>You can check your application details in your dashboard.</p>
-      
-      <div class="footer">
-        <p>If you have any questions, please don't hesitate to contact us.</p>
-      </div>
+export const applicationStatusTemplate = (firstName, job, company, status) => baseTemplate(`
+  <div class="content">
+    <h2>Application Status Update</h2>
+    <p>Hello ${firstName},</p>
+    <p>There has been an update to your application for the position of <strong>${job.jobTitle}</strong> at <strong>${company.companyName}</strong>.</p>
+    
+    <div class="status-update">
+      <h3>Status Update:</h3>
+      <p>Your application status has been changed to: <span class="highlight">${status}</span></p>
     </div>
-  `);
-};
+    
+    <div class="details">
+      <h3>Job Details:</h3>
+      <ul>
+        <li><strong>Position:</strong> ${job.jobTitle}</li>
+        <li><strong>Company:</strong> ${company.companyName}</li>
+        <li><strong>Location:</strong> ${job.jobLocation}</li>
+        <li><strong>Working Time:</strong> ${job.workingTime}</li>
+      </ul>
+    </div>
+    
+    ${status === 'accepted' ? 
+      `<p>Congratulations! The hiring team would like to move forward with your application. They will contact you soon with next steps.</p>` : 
+      status === 'rejected' ? 
+      `<p>We appreciate your interest in this position. Unfortunately, the hiring team has decided to pursue other candidates at this time. We encourage you to apply for other positions that match your skills and experience.</p>` :
+      status === 'in consideration' ?
+      `<p>The hiring team is currently reviewing your application in detail. This is a positive step in the process!</p>` :
+      status === 'viewed' ?
+      `<p>The hiring team has reviewed your application and is considering next steps.</p>` :
+      `<p>The hiring team will continue to review your application and will update you on any changes.</p>`
+    }
+    
+    <p>You can check the full details of your application in your dashboard.</p>
+    
+    <p>Best regards,<br>The ${company.companyName} Hiring Team</p>
+  </div>
+`);

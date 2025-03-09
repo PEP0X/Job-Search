@@ -2,12 +2,25 @@ import app from "./app.js";
 import mongoose from "mongoose";
 import { config } from "./config/env.js";
 import { startCronJobs } from "./utils/cron.js";
+import { createServer } from "http";
+import initializeSocketIO from "./config/socket.js";
 
 mongoose
   .connect(config.mongo.uri)
   .then(() => {
     console.log("MongoDB Connected Successfully ✅");
-    const server = app.listen(config.port, () => {
+
+    // Create HTTP server
+    const httpServer = createServer(app);
+
+    // Initialize Socket.IO
+    const io = initializeSocketIO(httpServer);
+
+    // Make io available globally
+    app.set("io", io);
+
+    // Start server
+    httpServer.listen(config.port, () => {
       console.log(`Server is Running on http://localhost:${config.port} 🚀`);
     });
 
@@ -18,7 +31,7 @@ mongoose
         // Close MongoDB connection without callback
         await mongoose.connection.close();
         console.log("MongoDB Connection Closed ✅");
-        server.close(() => {
+        httpServer.close(() => {
           console.log("HTTP server closed");
           process.exit(0);
         });
@@ -32,6 +45,6 @@ mongoose
     startCronJobs();
   })
   .catch((error) => {
-    console.error(`MongoDB Connection Error: ${error.message} ❌`);
-    console.error("Server is not running ❌");
+    console.error("MongoDB Connection Error:", error);
+    process.exit(1);
   });

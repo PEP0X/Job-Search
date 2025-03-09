@@ -91,12 +91,31 @@ export const sendApplicationConfirmation = async (user, job, company) => {
  * @param {String} status - New application status
  * @returns {Promise}
  */
+// In your emailService.js file, ensure the sendApplicationStatusUpdate function is using the template correctly
+
+/**
+ * Send application status update email
+ * @param {Object} user - User object
+ * @param {Object} job - Job object
+ * @param {Object} company - Company object
+ * @param {String} status - New application status
+ */
 export const sendApplicationStatusUpdate = async (user, job, company, status) => {
-  const { firstName, email } = user;
-  
-  return sendEmail({
-    to: email,
-    subject: 'Application Status Update',
-    html: templates.applicationStatusTemplate(firstName, job.jobTitle, company.companyName, status),
-  });
+  try {
+    const emailContent = templates.applicationStatusTemplate(
+      user.firstName,
+      job,
+      company,
+      status
+    );
+
+    await sendEmail({
+      to: user.email,
+      subject: `Application Status Update: ${job.jobTitle} at ${company.companyName}`,
+      html: emailContent,
+    });
+  } catch (error) {
+    console.error("Error sending application status update email:", error);
+    // Don't throw error to prevent disrupting the main flow
+  }
 };

@@ -1,5 +1,7 @@
 import { Schema, model } from "mongoose";
 
+const ApplicationStatus = ["pending", "accepted", "viewed", "in consideration", "rejected"]
+
 const applicationSchema = new Schema(
   {
     jobId: {
@@ -24,7 +26,7 @@ const applicationSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "accepted", "viewed", "in consideration", "rejected"],
+      enum: ApplicationStatus,
       default: "pending",
     },
   },

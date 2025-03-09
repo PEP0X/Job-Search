@@ -1,0 +1,1116 @@
+{
+  "info": {
+    "name": "Job Search API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Signup",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"firstName\":\"Test\",\"lastName\":\"User\",\"email\":\"testuser@example.com\",\"password\":\"Password123!\",\"confirmPassword\":\"Password123!\"}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/signup",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "signup"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Signup successful\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.environment.set(\"access_token\", jsonData.tokens.accessToken);",
+                  "    pm.environment.set(\"refresh_token\", jsonData.tokens.refreshToken);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"testuser@example.com\",\"password\":\"Password123!\"}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/signin",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "signin"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Login successful\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.environment.set(\"access_token\", jsonData.tokens.accessToken);",
+                  "    pm.environment.set(\"refresh_token\", jsonData.tokens.refreshToken);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify OTP",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"testuser@example.com\",\"otp\":\"123456\",\"type\":\"confirmEmail\"}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/verify-otp",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "verify-otp"]
+            }
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"testuser@example.com\"}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/forget-password",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "forget-password"]
+            }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"testuser@example.com\",\"otp\":\"123456\",\"newPassword\":\"NewPassword123!\",\"confirmPassword\":\"NewPassword123!\"}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/reset-password",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "reset-password"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"refreshToken\":\"{{refresh_token}}\"}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/refresh-token",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "refresh-token"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Token refresh successful\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.environment.set(\"access_token\", jsonData.tokens.accessToken);",
+                  "    pm.environment.set(\"refresh_token\", jsonData.tokens.refreshToken);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "Get User Profile",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/profile",
+              "host": ["{{base_url}}"],
+              "path": ["users", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Get Other User Profile",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/:id/profile",
+              "host": ["{{base_url}}"],
+              "path": ["users", ":id", "profile"],
+              "variable": [{ "key": "id", "value": "user_id_here" }]
+            }
+          }
+        },
+        {
+          "name": "Update User Profile",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"firstName\":\"Updated\",\"lastName\":\"User\",\"gender\":\"Male\",\"DOB\":\"1990-01-01\",\"mobileNumber\":\"1234567890\"}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/users/update",
+              "host": ["{{base_url}}"],
+              "path": ["users", "update"]
+            }
+          }
+        },
+        {
+          "name": "Update Password",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"currentPassword\":\"Password123!\",\"newPassword\":\"NewPassword123!\",\"confirmPassword\":\"NewPassword123!\"}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/users/update-password",
+              "host": ["{{base_url}}"],
+              "path": ["users", "update-password"]
+            }
+          }
+        },
+        {
+          "name": "Upload Profile Picture",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "profilePic", "type": "file", "src": [] }]
+            },
+            "url": {
+              "raw": "{{base_url}}/users/profile-pic",
+              "host": ["{{base_url}}"],
+              "path": ["users", "profile-pic"]
+            }
+          }
+        },
+        {
+          "name": "Upload Cover Picture",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "coverPic", "type": "file", "src": [] }]
+            },
+            "url": {
+              "raw": "{{base_url}}/users/cover-pic",
+              "host": ["{{base_url}}"],
+              "path": ["users", "cover-pic"]
+            }
+          }
+        },
+        {
+          "name": "Delete Profile Picture",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/profile-pic",
+              "host": ["{{base_url}}"],
+              "path": ["users", "profile-pic"]
+            }
+          }
+        },
+        {
+          "name": "Delete Cover Picture",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/cover-pic",
+              "host": ["{{base_url}}"],
+              "path": ["users", "cover-pic"]
+            }
+          }
+        },
+        {
+          "name": "Delete Account",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/delete",
+              "host": ["{{base_url}}"],
+              "path": ["users", "delete"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Company",
+      "item": [
+        {
+          "name": "Create Company",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "companyName",
+                  "value": "Test Company",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "This is a test company",
+                  "type": "text"
+                },
+                { "key": "industry", "value": "Technology", "type": "text" },
+                {
+                  "key": "address",
+                  "value": "123 Test Street",
+                  "type": "text"
+                },
+                {
+                  "key": "numberOfEmployees",
+                  "value": "50-100",
+                  "type": "text"
+                },
+                {
+                  "key": "companyEmail",
+                  "value": "company@example.com",
+                  "type": "text"
+                },
+                { "key": "legalAttachment", "type": "file", "src": [] }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/companies",
+              "host": ["{{base_url}}"],
+              "path": ["companies"]
+            }
+          }
+        },
+        {
+          "name": "Update Company",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"companyName\":\"Updated Company\",\"description\":\"This is an updated description\",\"industry\":\"Software\",\"address\":\"456 New Street\",\"numberOfEmployees\":\"100-500\",\"companyEmail\":\"updated@example.com\"}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/companies/:id",
+              "host": ["{{base_url}}"],
+              "path": ["companies", ":id"],
+              "variable": [{ "key": "id", "value": "company_id_here" }]
+            }
+          }
+        },
+        {
+          "name": "Delete Company",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/companies/:id",
+              "host": ["{{base_url}}"],
+              "path": ["companies", ":id"],
+              "variable": [{ "key": "id", "value": "company_id_here" }]
+            }
+          }
+        },
+        {
+          "name": "Get Company",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/companies/:id",
+              "host": ["{{base_url}}"],
+              "path": ["companies", ":id"],
+              "variable": [{ "key": "id", "value": "company_id_here" }]
+            }
+          }
+        },
+        {
+          "name": "Search Companies",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/companies?name=Test&page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["companies"],
+              "query": [
+                { "key": "name", "value": "Test" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Upload Logo",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "logo", "type": "file", "src": [] }]
+            },
+            "url": {
+              "raw": "{{base_url}}/companies/:id/logo",
+              "host": ["{{base_url}}"],
+              "path": ["companies", ":id", "logo"],
+              "variable": [{ "key": "id", "value": "company_id_here" }]
+            }
+          }
+        },
+        {
+          "name": "Upload Cover Picture",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "coverPic", "type": "file", "src": [] }]
+            },
+            "url": {
+              "raw": "{{base_url}}/companies/:id/cover",
+              "host": ["{{base_url}}"],
+              "path": ["companies", ":id", "cover"],
+              "variable": [{ "key": "id", "value": "company_id_here" }]
+            }
+          }
+        },
+        {
+          "name": "Delete Logo",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/companies/:id/logo",
+              "host": ["{{base_url}}"],
+              "path": ["companies", ":id", "logo"],
+              "variable": [{ "key": "id", "value": "company_id_here" }]
+            }
+          }
+        },
+        {
+          "name": "Delete Cover Picture",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/companies/:id/cover",
+              "host": ["{{base_url}}"],
+              "path": ["companies", ":id", "cover"],
+              "variable": [{ "key": "id", "value": "company_id_here" }]
+            }
+          }
+        },
+        {
+          "name": "Export Company Applications",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/companies/:companyId/applications/export?date=2023-07-15",
+              "host": ["{{base_url}}"],
+              "path": ["companies", ":companyId", "applications", "export"],
+              "query": [{ "key": "date", "value": "2023-07-15" }],
+              "variable": [{ "key": "companyId", "value": "company_id_here" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Job",
+      "item": [
+        {
+          "name": "Create Job",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"companyId\":\"company_id_here\",\"jobTitle\":\"Software Developer\",\"jobDescription\":\"We are looking for a skilled software developer\",\"jobLocation\":\"Remote\",\"workingTime\":\"Full-time\",\"seniorityLevel\":\"Mid-Level\",\"technicalSkills\":[\"JavaScript\",\"Node.js\",\"React\"],\"softSkills\":[\"Communication\",\"Teamwork\"],\"salary\":{\"min\":50000,\"max\":80000,\"currency\":\"USD\"}}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/jobs",
+              "host": ["{{base_url}}"],
+              "path": ["jobs"]
+            }
+          }
+        },
+        {
+          "name": "Update Job",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"jobTitle\":\"Senior Software Developer\",\"jobDescription\":\"Updated job description\",\"salary\":{\"min\":60000,\"max\":90000,\"currency\":\"USD\"}}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/jobs/:id",
+              "host": ["{{base_url}}"],
+              "path": ["jobs", ":id"],
+              "variable": [{ "key": "id", "value": "job_id_here" }]
+            }
+          }
+        },
+        {
+          "name": "Delete Job",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/jobs/:id",
+              "host": ["{{base_url}}"],
+              "path": ["jobs", ":id"],
+              "variable": [{ "key": "id", "value": "job_id_here" }]
+            }
+          }
+        },
+        {
+          "name": "Get All Jobs",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/jobs?jobTitle=Software&page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["jobs"],
+              "query": [
+                { "key": "jobTitle", "value": "Software" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Company Jobs",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/jobs/company/:companyId?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["jobs", "company", ":companyId"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ],
+              "variable": [{ "key": "companyId", "value": "company_id_here" }]
+            }
+          }
+        },
+        {
+          "name": "Get Job Applications",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/jobs/:jobId/applications?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["jobs", ":jobId", "applications"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ],
+              "variable": [{ "key": "jobId", "value": "job_id_here" }]
+            }
+          }
+        },
+        {
+          "name": "Apply to Job",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "cv", "type": "file", "src": [] }]
+            },
+            "url": {
+              "raw": "{{base_url}}/jobs/:jobId/apply",
+              "host": ["{{base_url}}"],
+              "path": ["jobs", ":jobId", "apply"],
+              "variable": [{ "key": "jobId", "value": "job_id_here" }]
+            }
+          }
+        },
+        {
+          "name": "Update Application Status",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"status\":\"shortlisted\"}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/jobs/applications/:id/status",
+              "host": ["{{base_url}}"],
+              "path": ["jobs", "applications", ":id", "status"],
+              "variable": [{ "key": "id", "value": "application_id_here" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chat",
+      "item": [
+        {
+          "name": "Get User Chats",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/chats",
+              "host": ["{{base_url}}"],
+              "path": ["chats"]
+            }
+          }
+        },
+        {
+          "name": "Get Chat History",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/chats/:userId?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["chats", ":userId"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ],
+              "variable": [{ "key": "userId", "value": "user_id_here" }]
+            }
+          }
+        },
+        {
+          "name": "Send Message",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"message\":\"Hello, this is a test message!\"}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/chats/:userId/messages",
+              "host": ["{{base_url}}"],
+              "path": ["chats", ":userId", "messages"],
+              "variable": [{ "key": "userId", "value": "user_id_here" }]
+            }
+          }
+        },
+        {
+          "name": "Verify HR Chat",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/chats/verify/:companyId",
+              "host": ["{{base_url}}"],
+              "path": ["chats", "verify", ":companyId"],
+              "variable": [{ "key": "companyId", "value": "company_id_here" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Ban User",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/users/:id/ban",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "users", ":id", "ban"],
+              "variable": [{ "key": "id", "value": "user_id_here" }]
+            }
+          }
+        },
+        {
+          "name": "Unban User",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/users/:id/unban",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "users", ":id", "unban"],
+              "variable": [{ "key": "id", "value": "user_id_here" }]
+            }
+          }
+        },
+        {
+          "name": "Ban Company",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/companies/:id/ban",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "companies", ":id", "ban"],
+              "variable": [{ "key": "id", "value": "company_id_here" }]
+            }
+          }
+        },
+        {
+          "name": "Unban Company",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/companies/:id/unban",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "companies", ":id", "unban"],
+              "variable": [{ "key": "id", "value": "company_id_here" }]
+            }
+          }
+        },
+        {
+          "name": "Approve Company",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/companies/:id/approve",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "companies", ":id", "approve"],
+              "variable": [{ "key": "id", "value": "company_id_here" }]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

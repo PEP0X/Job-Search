@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { Schema, model } from "mongoose";
 import bcrypt from "bcryptjs";
 import { config } from "../config/env.js";
@@ -172,6 +173,52 @@ UserSchema.methods.decryptMobileNumber = function () {
     return null;
   }
 };
+
+// Pre-hook for findOneAndDelete and deleteOne operations [Must Implemented]
+UserSchema.pre(['findOneAndDelete', 'deleteOne'], { document: false, query: true }, async function() {
+  const user = await this.model.findOne(this.getFilter());
+  if (!user) return;
+  
+  const userId = user._id;
+  
+  // Update companies where user is creator or HR
+  await mongoose.model('Company').updateMany(
+    { createdBy: userId },
+    { $set: { createdBy: null } }
+  );
+  
+  await mongoose.model('Company').updateMany(
+    { HRs: userId },
+    { $pull: { HRs: userId } }
+  );
+  
+  // Update jobs added by user
+  await mongoose.model('Job').updateMany(
+    { addedBy: userId },
+    { $set: { addedBy: null } }
+  );
+  
+  // Delete user's applications
+  await mongoose.model('Application').deleteMany({ userId });
+});
+
+// Pre-hook for document middleware (when using save() for soft delete)
+UserSchema.pre('save', async function(next) {
+  // If this is a soft delete operation
+  if (this.isModified('deletedAt') && this.deletedAt) {
+    try {
+      // Mark user's applications as deleted or rejected
+      await mongoose.model('Application').updateMany(
+        { userId: this._id },
+        { $set: { status: 'rejected' } }
+      );
+    } catch (error) {
+      console.error('Error in User soft delete hook:', error);
+    }
+  }
+  next();
+});
+
 
 const User = model("User", UserSchema);
 

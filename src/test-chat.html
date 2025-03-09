@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Job Search Chat</title>
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      :root {
+        --primary-color: #4f46e5;
+        --primary-light: #818cf8;
+        --secondary-color: #f3f4f6;
+        --text-color: #1f2937;
+        --light-text: #6b7280;
+        --border-color: #e5e7eb;
+        --sent-bg: #e0e7ff;
+        --received-bg: #f3f4f6;
+        --success-color: #10b981;
+        --error-color: #ef4444;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        color: var(--text-color);
+        background-color: #f9fafb;
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .header {
+        background-color: white;
+        padding: 1rem 2rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .header h1 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--primary-color);
+      }
+
+      .container {
+        display: flex;
+        flex: 1;
+        height: calc(100vh - 70px);
+        padding: 1rem;
+        gap: 1rem;
+      }
+
+      .user-panel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background-color: white;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      .panel-header {
+        padding: 1rem;
+        background-color: white;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .user-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: var(--primary-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        overflow: hidden;
+      }
+
+      .user-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .user-details {
+        flex: 1;
+      }
+
+      .user-name {
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+
+      .user-status {
+        font-size: 0.8rem;
+        color: var(--light-text);
+      }
+
+      .status-indicator {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 5px;
+      }
+
+      .status-online {
+        background-color: var(--success-color);
+      }
+
+      .status-offline {
+        background-color: var(--light-text);
+      }
+
+      .chat-box {
+        flex: 1;
+        padding: 1rem;
+        overflow-y: auto;
+        background-color: #f9fafb;
+      }
+
+      .message {
+        max-width: 80%;
+        margin-bottom: 1rem;
+        padding: 0.75rem 1rem;
+        border-radius: 1rem;
+        position: relative;
+        word-wrap: break-word;
+      }
+
+      .message-time {
+        font-size: 0.7rem;
+        color: var(--light-text);
+        margin-top: 0.25rem;
+      }
+
+      .sent {
+        background-color: var(--sent-bg);
+        color: var(--text-color);
+        margin-left: auto;
+        border-bottom-right-radius: 0.25rem;
+      }
+
+      .received {
+        background-color: var(--received-bg);
+        color: var(--text-color);
+        margin-right: auto;
+        border-bottom-left-radius: 0.25rem;
+      }
+
+      .message-input {
+        display: flex;
+        padding: 0.75rem 1rem;
+        background-color: white;
+        border-top: 1px solid var(--border-color);
+      }
+
+      .message-input input {
+        flex: 1;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 1.5rem;
+        outline: none;
+        font-family: "Inter", sans-serif;
+      }
+
+      .message-input input:focus {
+        border-color: var(--primary-light);
+      }
+
+      .message-input button {
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        margin-left: 0.5rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.2s;
+      }
+
+      .message-input button:hover {
+        background-color: var(--primary-light);
+      }
+
+      .message-input button:disabled {
+        background-color: var(--light-text);
+        cursor: not-allowed;
+      }
+
+      .auth-form {
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .auth-form input {
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 0.375rem;
+        outline: none;
+        font-family: "Inter", sans-serif;
+      }
+
+      .auth-form button {
+        padding: 0.75rem 1rem;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 0.375rem;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background-color 0.2s;
+      }
+
+      .auth-form button:hover {
+        background-color: var(--primary-light);
+      }
+
+      .chat-interface {
+        display: none;
+        flex-direction: column;
+        flex: 1;
+      }
+
+      .date-divider {
+        display: flex;
+        align-items: center;
+        margin: 1rem 0;
+        color: var(--light-text);
+        font-size: 0.8rem;
+      }
+
+      .date-divider::before,
+      .date-divider::after {
+        content: "";
+        flex: 1;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .date-divider::before {
+        margin-right: 0.5rem;
+      }
+
+      .date-divider::after {
+        margin-left: 0.5rem;
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          flex-direction: column;
+        }
+
+        .user-panel {
+          height: 50%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>Job Search Chat</h1>
+    </div>
+
+    <div class="container">
+      <!-- User 1 Panel -->
+      <div class="user-panel">
+        <div class="panel-header">
+          <h2>User 1</h2>
+        </div>
+
+        <!-- Auth Form -->
+        <div class="auth-form" id="authForm1">
+          <input type="text" id="token1" placeholder="Enter User 1 JWT Token" />
+          <button onclick="connectUser(1)">Connect</button>
+        </div>
+
+        <!-- Chat Interface (hidden initially) -->
+        <div class="chat-interface" id="chatInterface1">
+          <div class="user-info" id="userInfo1">
+            <div class="user-avatar" id="userAvatar1">
+              <i class="fas fa-user"></i>
+            </div>
+            <div class="user-details">
+              <div class="user-name" id="userName1">User 2</div>
+              <div class="user-status">
+                <span class="status-indicator status-online"></span>
+                <span id="status1">Connected</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="chat-box" id="chatBox1"></div>
+
+          <div class="message-input">
+            <input
+              type="text"
+              id="message1"
+              placeholder="Type a message..."
+              onkeypress="if(event.key === 'Enter') sendMessage(1)"
+            />
+            <button onclick="sendMessage(1)">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- User 2 Panel -->
+      <div class="user-panel">
+        <div class="panel-header">
+          <h2>User 2</h2>
+        </div>
+
+        <!-- Auth Form -->
+        <div class="auth-form" id="authForm2">
+          <input type="text" id="token2" placeholder="Enter User 2 JWT Token" />
+          <button onclick="connectUser(2)">Connect</button>
+        </div>
+
+        <!-- Chat Interface (hidden initially) -->
+        <div class="chat-interface" id="chatInterface2">
+          <div class="user-info" id="userInfo2">
+            <div class="user-avatar" id="userAvatar2">
+              <i class="fas fa-user"></i>
+            </div>
+            <div class="user-details">
+              <div class="user-name" id="userName2">User 1</div>
+              <div class="user-status">
+                <span class="status-indicator status-online"></span>
+                <span id="status2">Connected</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="chat-box" id="chatBox2"></div>
+
+          <div class="message-input">
+            <input
+              type="text"
+              id="message2"
+              placeholder="Type a message..."
+              onkeypress="if(event.key === 'Enter') sendMessage(2)"
+            />
+            <button onclick="sendMessage(2)">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let socket1 = null;
+      let socket2 = null;
+      let user1Id = null;
+      let user2Id = null;
+      let user1Data = null;
+      let user2Data = null;
+
+      // Connect a user to the socket server
+      function connectUser(userNum) {
+        const tokenInput = document.getElementById(`token${userNum}`);
+        const token = tokenInput.value.trim();
+
+        if (!token) {
+          alert(`Please enter a valid token for User ${userNum}`);
+          return;
+        }
+
+        // Parse the JWT token to get the user ID
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        const userId = payload.id;
+
+        // Instead of fetching user data first, connect to socket and show UI
+        if (userNum === 1) {
+          user1Id = userId;
+          if (socket1) socket1.disconnect();
+
+          socket1 = io("http://localhost:3000", {
+            auth: { token },
+          });
+
+          setupSocketListeners(socket1, 1, 2, token);
+          
+          // Update UI immediately
+          document.getElementById("authForm1").style.display = "none";
+          document.getElementById("chatInterface1").style.display = "flex";
+          
+          // Set default user info until we get real data
+          setDefaultUserInfo(2);
+          
+          // Try to fetch user data in the background
+          fetchUserData(userId, token, 1);
+        } else {
+          user2Id = userId;
+          if (socket2) socket2.disconnect();
+
+          socket2 = io("http://localhost:3000", {
+            auth: { token },
+          });
+
+          setupSocketListeners(socket2, 2, 1, token);
+          
+          // Update UI immediately
+          document.getElementById("authForm2").style.display = "none";
+          document.getElementById("chatInterface2").style.display = "flex";
+          
+          // Set default user info until we get real data
+          setDefaultUserInfo(1);
+          
+          // Try to fetch user data in the background
+          fetchUserData(userId, token, 2);
+        }
+      }
+
+      // Set default user info
+      function setDefaultUserInfo(userNum) {
+        const userName = document.getElementById(`userName${userNum}`);
+        const userAvatar = document.getElementById(`userAvatar${userNum}`);
+        
+        userName.textContent = `User ${userNum}`;
+        userAvatar.innerHTML = `<i class="fas fa-user"></i>`;
+      }
+
+      // Set up socket event listeners
+      function setupSocketListeners(socket, userNum, otherUserNum, token) {
+        const statusElement = document.getElementById(`status${userNum}`);
+        const chatBox = document.getElementById(`chatBox${userNum}`);
+      
+        socket.on("connect", () => {
+          statusElement.textContent = "Connected";
+          document
+            .querySelector(`#userInfo${userNum} .status-indicator`)
+            .classList.add("status-online");
+          document
+            .querySelector(`#userInfo${userNum} .status-indicator`)
+            .classList.remove("status-offline");
+      
+          // Always join chat room if we have our own ID
+          // No need to wait for the other user to be connected
+          if (userNum === 1) {
+            // For User 1
+            if (user2Id) {
+              // If User 2 is already connected
+              const participants = [user1Id, user2Id].sort();
+              const roomId = `chat_${participants.join("_")}`;
+              socket.emit("joinChat", roomId);
+              console.log(`User ${userNum} joining room: ${roomId}`);
+            } else {
+              console.log(`User 1 connected but waiting for User 2 to join`);
+              
+              // Set up a watcher to join room when user2Id becomes available
+              const checkForUser2 = setInterval(() => {
+                if (user2Id) {
+                  const participants = [user1Id, user2Id].sort();
+                  const roomId = `chat_${participants.join("_")}`;
+                  socket.emit("joinChat", roomId);
+                  console.log(`User 1 joining room after User 2 connected: ${roomId}`);
+                  clearInterval(checkForUser2);
+                }
+              }, 1000);
+            }
+          } else if (userNum === 2) {
+            // For User 2
+            if (user1Id) {
+              // If User 1 is already connected
+              const participants = [user1Id, user2Id].sort();
+              const roomId = `chat_${participants.join("_")}`;
+              socket.emit("joinChat", roomId);
+              console.log(`User ${userNum} joining room: ${roomId}`);
+            } else {
+              console.log(`User 2 connected but waiting for User 1 to join`);
+              
+              // Set up a watcher to join room when user1Id becomes available
+              const checkForUser1 = setInterval(() => {
+                if (user1Id) {
+                  const participants = [user1Id, user2Id].sort();
+                  const roomId = `chat_${participants.join("_")}`;
+                  socket.emit("joinChat", roomId);
+                  console.log(`User 2 joining room after User 1 connected: ${roomId}`);
+                  clearInterval(checkForUser1);
+                }
+              }, 1000);
+            }
+          }
+      
+          // Fetch other user's data if available
+          const otherUserId = userNum === 1 ? user2Id : user1Id;
+          if (otherUserId) {
+            fetchUserData(otherUserId, token, otherUserNum);
+          }
+        });
+
+        // ... existing code ...
+      
+        socket.on("newMessage", (message) => {
+          console.log(`User ${userNum} received message:`, message);
+          
+          // Simplified logic - just check if this message is from the current user
+          const currentUserId = userNum === 1 ? user1Id : user2Id;
+          
+          if (message.senderId !== currentUserId) {
+            console.log(`Displaying message from ${message.senderId} to User ${userNum}`);
+            displayMessage(
+              chatBox,
+              message.message,
+              false,
+              new Date(message.timestamp)
+            );
+          } else {
+            console.log(`Skipping own message from User ${userNum}`);
+          }
+        });
+      
+        socket.on("error", (error) => {
+          console.error(`User ${userNum} socket error:`, error);
+          alert(`User ${userNum} error: ${error.message}`);
+        });
+      }
+
+      // Fetch user data with better error handling
+      function fetchUserData(userId, token, userNumToUpdate) {
+        // First try the user profile endpoint
+        fetch(`http://localhost:3000/api/users/profile`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+          .then((response) => {
+            if (!response.ok) {
+              // If profile endpoint fails, try the specific user endpoint
+              return fetch(`http://localhost:3000/api/users/${userId}`, {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              });
+            }
+            return response;
+          })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then((userData) => {
+            // Handle different response formats
+            const user = userData.user || userData;
+            
+            if (userNumToUpdate === 1) {
+              user1Data = user;
+              updateUserInfo(1, user);
+            } else {
+              user2Data = user;
+              updateUserInfo(2, user);
+            }
+          })
+          .catch((error) => {
+            console.error(`Error fetching user data:`, error);
+            // Don't show alert, just log to console
+          });
+      }
+
+      // Update user info in the UI with fallback for missing fields
+      function updateUserInfo(userNum, userData) {
+        const userName = document.getElementById(`userName${userNum}`);
+        const userAvatar = document.getElementById(`userAvatar${userNum}`);
+      
+        // Set user name with fallback
+        if (userData.firstName && userData.lastName) {
+          userName.textContent = `${userData.firstName} ${userData.lastName}`;
+        } else if (userData.name) {
+          userName.textContent = userData.name;
+        } else if (userData.email) {
+          userName.textContent = userData.email.split('@')[0];
+        } else {
+          userName.textContent = `User ${userNum}`;
+        }
+      
+        // Set user avatar with fallback
+        if (userData.profilePic) {
+          userAvatar.innerHTML = `<img src="${userData.profilePic}" alt="${userName.textContent}" />`;
+        } else if (userData.firstName && userData.lastName) {
+          userAvatar.innerHTML = `${userData.firstName.charAt(0)}${userData.lastName.charAt(0)}`;
+        } else if (userData.name) {
+          const nameParts = userData.name.split(' ');
+          userAvatar.innerHTML = nameParts.length > 1 
+            ? `${nameParts[0].charAt(0)}${nameParts[1].charAt(0)}`
+            : userData.name.charAt(0);
+        } else {
+          userAvatar.innerHTML = `<i class="fas fa-user"></i>`;
+        }
+      }
+
+      // Display a message in the chat box
+      function displayMessage(
+        chatBox,
+        messageText,
+        isSent,
+        timestamp = new Date()
+      ) {
+        const messageDiv = document.createElement("div");
+        const messageContent = document.createElement("div");
+        const timeDiv = document.createElement("div");
+
+        messageDiv.className = `message ${isSent ? "sent" : "received"}`;
+        messageContent.textContent = messageText;
+        timeDiv.className = "message-time";
+        timeDiv.textContent = timestamp.toLocaleTimeString();
+
+        messageDiv.appendChild(messageContent);
+        messageDiv.appendChild(timeDiv);
+        chatBox.appendChild(messageDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+
+      // Send a message
+      function sendMessage(userNum) {
+        const messageInput = document.getElementById(`message${userNum}`);
+        const message = messageInput.value.trim();
+        const chatBox = document.getElementById(`chatBox${userNum}`);
+
+        if (!message) return;
+
+        const token = document.getElementById(`token${userNum}`).value.trim();
+        const otherUserId = userNum === 1 ? user2Id : user1Id;
+
+        if (!token) {
+          alert(`User ${userNum} is not connected`);
+          return;
+        }
+
+        if (!otherUserId) {
+          alert(`The other user is not connected yet`);
+          return;
+        }
+
+        // Use the REST API to send the message
+        fetch(`http://localhost:3000/api/chats/${otherUserId}/messages`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ message }),
+        })
+          .then((response) => {
+            if (!response.ok) {
+              return response.json().then((errorData) => {
+                throw new Error(errorData.error || "Failed to send message");
+              });
+            }
+            return response.json();
+          })
+          .then((data) => {
+            // Display sent message in chat box
+            displayMessage(chatBox, message, true);
+
+            // Clear input
+            messageInput.value = "";
+          })
+          .catch((error) => {
+            console.error(`Error sending message from User ${userNum}:`, error);
+            alert(`Error: ${error.message}`);
+          });
+      }
+
+      // Add event listeners for Enter key in message inputs
+      document
+        .getElementById("message1")
+        .addEventListener("keypress", function (e) {
+          if (e.key === "Enter") {
+            sendMessage(1);
+          }
+        });
+
+      document
+        .getElementById("message2")
+        .addEventListener("keypress", function (e) {
+          if (e.key === "Enter") {
+            sendMessage(2);
+          }
+        });
+    </script>
+  </body>
+</html>

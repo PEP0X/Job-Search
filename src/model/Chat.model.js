@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 
-const chatSchema = new mongoose.Schema(
+const chatSchema = new Schema(
   {
     senderId: {
       type: Schema.Types.ObjectId,
@@ -53,7 +53,7 @@ chatSchema.statics.getChatHistory = async function (userId1, userId2) {
       { senderId: userId1, receiverId: userId2 },
       { senderId: userId2, receiverId: userId1 },
     ],
-  }).populate("messages.senderId", "username email"); 
+  }).populate("messages.senderId", "username email");
 
   // If no chat exists, return an empty chat object
   if (!chat) {
@@ -73,4 +73,4 @@ chatSchema.statics.getChatHistory = async function (userId1, userId2) {
 chatSchema.index({ senderId: 1, receiverId: 1 });
 chatSchema.index({ receiverId: 1, senderId: 1 });
 
-module.exports = model("Chat", chatSchema);
+export default model("Chat", chatSchema);
