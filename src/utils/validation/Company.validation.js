@@ -9,6 +9,7 @@ export const createCompanySchema = Joi.object({
     .required()
     .pattern(/^(\d+-\d+|\d+\+)$/), // Matches "10-50" or "10+"
   companyEmail: Joi.string().email().required(),
+  HRs: Joi.array().items(Joi.string().email()),
 });
 
 export const updateCompanySchema = Joi.object({
