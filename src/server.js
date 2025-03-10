@@ -20,7 +20,7 @@ mongoose
     app.set("io", io);
 
     // Start server
-    httpServer.listen(config.port, () => {
+    httpServer.listen(config.port, "0.0.0.0", () => {
       console.log(`Server is Running on http://localhost:${config.port} 🚀`);
     });
 

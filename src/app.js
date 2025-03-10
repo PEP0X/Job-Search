@@ -14,6 +14,8 @@ import passport from "./config/passport.js";
 import { tokenErrorHandler } from "./middleware/refreshToken.middleware.js";
 import createApolloServer from "./graphql/server.js";
 import { verifyToken } from "./middleware/auth.middleware.js";
+import path from "path";
+import { fileURLToPath } from "url";
 
 // Get directory name in ES module
 const __filename = fileURLToPath(import.meta.url);
